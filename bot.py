@@ -9,6 +9,10 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 NEWSAPI_KEY = os.getenv('NEWSAPI_KEY')
 
+# Validate environment variables
+assert DISCORD_TOKEN is not None, "DISCORD_TOKEN environment variable is required"
+assert NEWSAPI_KEY is not None, "NEWSAPI_KEY environment variable is required"
+
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 

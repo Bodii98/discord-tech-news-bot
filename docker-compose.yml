@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   discord-bot:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: discord-tech-news-bot:latest
     container_name: discord-tech-news-bot
     restart: unless-stopped
     environment:
@@ -12,6 +15,12 @@ services:
       - ./logs:/app/logs
     networks:
       - bot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('https://discord.com')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   bot-network:
