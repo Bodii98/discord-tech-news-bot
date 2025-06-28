@@ -59,15 +59,26 @@ class TechNews(commands.Cog):
 async def on_ready():
     print(f"Logged in as {bot.user}")
     try:
-        print("Registered commands:", [cmd.name for cmd in bot.tree.get_commands()])
+        # Clear existing commands first
+        bot.tree.clear_commands(guild=None)
+        print("Cleared existing commands")
+        
+        # Add the cog (this will register the command)
+        await bot.add_cog(TechNews(bot))
+        print("Added TechNews cog")
+        
+        # Sync commands
         synced = await bot.tree.sync()
         print(f"Synced {len(synced)} command(s) globally")
+        print("Bot is ready!")
     except Exception as e:
-        print(f"Error syncing commands: {e}")
+        print(f"Error during setup: {e}")
 
 async def main():
-    await bot.add_cog(TechNews(bot))
-    await bot.start(DISCORD_TOKEN)
+    try:
+        await bot.start(DISCORD_TOKEN)
+    except Exception as e:
+        print(f"Error starting bot: {e}")
 
 if __name__ == "__main__":
     import asyncio
