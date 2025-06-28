@@ -5,80 +5,149 @@ from discord.ext import commands
 import requests
 from dotenv import load_dotenv
 
+# Load environment variables
 load_dotenv()
+
+# Get environment variables
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 NEWSAPI_KEY = os.getenv('NEWSAPI_KEY')
 
 # Validate environment variables
-assert DISCORD_TOKEN is not None, "DISCORD_TOKEN environment variable is required"
-assert NEWSAPI_KEY is not None, "NEWSAPI_KEY environment variable is required"
+if not DISCORD_TOKEN:
+    raise ValueError("DISCORD_TOKEN environment variable is required")
+if not NEWSAPI_KEY:
+    raise ValueError("NEWSAPI_KEY environment variable is required")
 
+# Create bot instance
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-class TechNews(commands.Cog):
+class TechNewsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="technews", description="Get the latest tech news in English or Arabic.")
-    @app_commands.describe(language="Choose the language: en (English) or ar (Arabic)")
+    @app_commands.command(name="technews", description="Get the latest technology news")
+    @app_commands.describe(language="Choose language: en (English) or ar (Arabic)")
     async def technews(self, interaction: discord.Interaction, language: str):
+        """Get the latest technology news in English or Arabic"""
+        
+        # Validate language parameter
         if language not in ["en", "ar"]:
-            await interaction.response.send_message("Please choose 'en' for English or 'ar' for Arabic.", ephemeral=True)
+            await interaction.response.send_message(
+                "Please choose 'en' for English or 'ar' for Arabic.", 
+                ephemeral=True
+            )
             return
-        url = (
-            f"https://newsapi.org/v2/top-headlines?category=technology&language={language}&apiKey={NEWSAPI_KEY}"
-        )
-        response = requests.get(url)
-        if response.status_code != 200:
-            await interaction.response.send_message("Failed to fetch news. Please try again later.", ephemeral=True)
-            return
-        data = response.json()
-        articles = data.get("articles", [])
-        if not articles:
-            await interaction.response.send_message("No tech news found.", ephemeral=True)
-            return
-        # Limit to top 3 articles
-        news_list = []
-        for article in articles[:3]:
-            title = article.get("title", "No title")
-            url = article.get("url", "")
-            news_list.append(f"[{title}]({url})")
-        news_message = "\n".join(news_list)
-        await interaction.response.send_message(f"**Latest Tech News:**\n{news_message}")
+
+        # Show typing indicator
+        await interaction.response.defer()
+
+        try:
+            # Fetch news from NewsAPI
+            url = f"https://newsapi.org/v2/top-headlines?category=technology&language={language}&apiKey={NEWSAPI_KEY}"
+            response = requests.get(url, timeout=10)
+            
+            if response.status_code != 200:
+                await interaction.followup.send(
+                    "Failed to fetch news. Please try again later.", 
+                    ephemeral=True
+                )
+                return
+
+            data = response.json()
+            articles = data.get("articles", [])
+
+            if not articles:
+                await interaction.followup.send(
+                    "No tech news found at the moment.", 
+                    ephemeral=True
+                )
+                return
+
+            # Create news embed
+            embed = discord.Embed(
+                title="📰 Latest Technology News",
+                color=0x00ff00,
+                description=f"Top technology news in {'English' if language == 'en' else 'Arabic'}"
+            )
+
+            # Add top 3 articles
+            for i, article in enumerate(articles[:3], 1):
+                title = article.get("title", "No title")
+                url = article.get("url", "")
+                description = article.get("description", "")[:100] + "..." if article.get("description") else "No description available"
+                
+                embed.add_field(
+                    name=f"{i}. {title}",
+                    value=f"{description}\n[Read More]({url})" if url else description,
+                    inline=False
+                )
+
+            embed.set_footer(text="Powered by NewsAPI")
+
+            await interaction.followup.send(embed=embed)
+
+        except requests.RequestException:
+            await interaction.followup.send(
+                "Network error. Please try again later.", 
+                ephemeral=True
+            )
+        except Exception as e:
+            print(f"Error in technews command: {e}")
+            await interaction.followup.send(
+                "An error occurred. Please try again later.", 
+                ephemeral=True
+            )
 
     @technews.autocomplete('language')
     async def language_autocomplete(self, interaction: discord.Interaction, current: str):
+        """Autocomplete for language selection"""
         languages = [
             app_commands.Choice(name="English", value="en"),
             app_commands.Choice(name="Arabic", value="ar")
         ]
-        return [l for l in languages if current.lower() in l.name.lower() or current.lower() in l.value]
+        return [lang for lang in languages if current.lower() in lang.name.lower()]
 
 @bot.event
 async def on_ready():
-    print(f"Logged in as {bot.user}")
+    """Called when the bot is ready"""
+    print(f"🤖 Bot logged in as {bot.user}")
+    if bot.user:
+        print(f"🆔 Bot ID: {bot.user.id}")
+    print(f"📡 Connected to {len(bot.guilds)} guild(s)")
+    
     try:
-        # Clear existing commands first
-        bot.tree.clear_commands(guild=None)
-        print("Cleared existing commands")
-        
-        # Add the cog (this will register the command)
-        await bot.add_cog(TechNews(bot))
-        print("Added TechNews cog")
-        
-        # Sync commands
+        # Sync commands globally
+        print("🔄 Syncing commands...")
         synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} command(s) globally")
-        print("Bot is ready!")
+        print(f"✅ Synced {len(synced)} command(s) globally")
+        print("🚀 Bot is ready!")
     except Exception as e:
-        print(f"Error during setup: {e}")
+        print(f"❌ Error syncing commands: {e}")
+
+@bot.event
+async def on_command_error(ctx, error):
+    """Handle command errors"""
+    if isinstance(error, commands.CommandNotFound):
+        return
+    print(f"Command error: {error}")
+
+async def setup():
+    """Setup function to add the cog"""
+    await bot.add_cog(TechNewsCog(bot))
 
 async def main():
+    """Main function to run the bot"""
+    print("🚀 Starting Discord Tech News Bot...")
+    
     try:
-        await bot.start(DISCORD_TOKEN)
+        # Setup the bot
+        await setup()
+        
+        # Start the bot (DISCORD_TOKEN is validated above)
+        await bot.start(DISCORD_TOKEN)  # type: ignore
     except Exception as e:
-        print(f"Error starting bot: {e}")
+        print(f"❌ Error starting bot: {e}")
 
 if __name__ == "__main__":
     import asyncio

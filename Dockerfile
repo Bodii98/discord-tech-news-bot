@@ -18,8 +18,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy all application files
-COPY . .
+# Copy application files
+COPY bot.py .
+COPY .env .
 
 # Create a non-root user for security
 RUN useradd --create-home --shell /bin/bash bot && \
@@ -28,7 +29,7 @@ USER bot
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('https://discord.com')" || exit 1
+    CMD python -c "import requests; requests.get('https://discord.com', timeout=5)" || exit 1
 
 # Run the bot
 CMD ["python", "bot.py"] 
