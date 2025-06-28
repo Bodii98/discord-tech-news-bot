@@ -1,16 +1,16 @@
 # Discord Tech News Bot
 
-A modern Discord bot that provides the latest technology news in English and Arabic using slash commands.
+A modern, reliable Discord bot that provides the latest technology news in English and Arabic using slash commands. Built from scratch with clean architecture and global server support.
 
 ## ✨ Features
 
-- `/technews` command with language selection (English/Arabic)
-- Beautiful embed messages with article descriptions
-- Real-time tech news from NewsAPI
-- Autocomplete for language selection
-- Global command registration
-- Robust error handling
-- Health checks for container monitoring
+- **Global Slash Commands** - Works in all Discord servers
+- **Multi-language Support** - English and Arabic news
+- **Beautiful Embeds** - Rich, formatted news display
+- **Auto-sync** - Commands automatically sync to new servers
+- **Robust Error Handling** - Graceful error management
+- **Health Checks** - Container monitoring and auto-restart
+- **Clean Architecture** - No command registration conflicts
 
 ## 🚀 Quick Start
 
@@ -91,6 +91,7 @@ python bot.py
 - `/technews [language]` - Get latest technology news
   - `language`: Choose "en" for English or "ar" for Arabic
   - Returns top 3 articles with descriptions and links
+  - Features autocomplete for language selection
 
 ## 🔧 Configuration
 
@@ -108,6 +109,15 @@ The bot runs in a container with:
 - Health checks every 30 seconds
 - Automatic restart on failure
 - Volume mounting for logs
+
+## 🌐 Global Server Support
+
+This bot is designed to work across all Discord servers:
+
+- **Global Commands**: Commands are registered globally and work in any server
+- **Auto-sync**: When the bot joins a new server, commands are automatically synced
+- **No Conflicts**: Clean architecture prevents command registration issues
+- **Scalable**: Can handle multiple servers without performance issues
 
 ## 🐛 Troubleshooting
 
@@ -168,6 +178,15 @@ If you encounter issues:
 2. Review the container logs
 3. Verify your environment variables
 4. Ensure your Discord bot has the necessary permissions
+
+## 🎯 What's New in This Version
+
+- **Complete rebuild** from scratch with clean architecture
+- **No command registration conflicts** - uses proper Discord.py patterns
+- **Global server support** - works in all Discord servers automatically
+- **Better error handling** - graceful error management
+- **Improved logging** - detailed startup and operation logs
+- **Auto-sync for new servers** - commands sync automatically when bot joins new servers
 
 ---
 
