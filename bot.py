@@ -11,15 +11,14 @@ NEWSAPI_KEY = os.getenv('NEWSAPI_KEY')
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
-guild_id = 1186354762959044698  # Your server ID
 
 class TechNews(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     async def cog_load(self):
-        # Register the command with the tree when the cog is loaded
-        self.bot.tree.add_command(self.technews, guild=discord.Object(id=guild_id))
+        # Register the command globally (no guild parameter)
+        self.bot.tree.add_command(self.technews)
 
     @app_commands.command(name="technews", description="Get the latest tech news in English or Arabic.")
     @app_commands.describe(language="Choose the language: en (English) or ar (Arabic)")
@@ -60,9 +59,9 @@ class TechNews(commands.Cog):
 async def on_ready():
     print(f"Logged in as {bot.user}")
     try:
-        print("Registered commands:", [cmd.name for cmd in bot.tree.get_commands(guild=discord.Object(id=guild_id))])
-        synced = await bot.tree.sync(guild=discord.Object(id=guild_id))
-        print(f"Synced {len(synced)} command(s) to guild {guild_id}")
+        print("Registered commands:", [cmd.name for cmd in bot.tree.get_commands()])
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s) globally")
     except Exception as e:
         print(f"Error syncing commands: {e}")
 
