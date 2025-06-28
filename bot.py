@@ -94,38 +94,78 @@ class TechNewsBot:
                 )
                 return
             
-            # Create embed
-            embed = discord.Embed(
+            # Create main embed
+            main_embed = discord.Embed(
                 title="📰 Latest Technology News",
                 description=f"Top technology news in {'English' if language == 'en' else 'Arabic'}",
                 color=0x00ff00,
                 url="https://newsapi.org"
             )
             
-            # Add articles to embed
-            for i, article in enumerate(articles[:3], 1):
+            # Get the first article for main embed thumbnail
+            first_article = articles[0]
+            thumbnail_url = first_article.get("urlToImage")
+            if thumbnail_url:
+                main_embed.set_thumbnail(url=thumbnail_url)
+            
+            # Add first article to main embed
+            title = first_article.get("title", "No title")
+            url = first_article.get("url", "")
+            description = first_article.get("description", "")
+            
+            # Truncate description if too long
+            if description and len(description) > 200:
+                description = description[:200] + "..."
+            
+            field_value = description if description else "No description available"
+            if url:
+                field_value += f"\n[Read More]({url})"
+            
+            main_embed.add_field(
+                name=f"🔥 {title}",
+                value=field_value,
+                inline=False
+            )
+            
+            # Add footer
+            main_embed.set_footer(text="Powered by NewsAPI • Use /technews to get more news")
+            
+            # Send main embed
+            await interaction.followup.send(embed=main_embed)
+            
+            # Create additional embeds for remaining articles (if any)
+            for i, article in enumerate(articles[1:3], 2):
                 title = article.get("title", "No title")
                 url = article.get("url", "")
                 description = article.get("description", "")
+                image_url = article.get("urlToImage")
                 
-                # Truncate description if too long
-                if description and len(description) > 150:
-                    description = description[:150] + "..."
-                
-                field_value = description if description else "No description available"
-                if url:
-                    field_value += f"\n[Read More]({url})"
-                
-                embed.add_field(
-                    name=f"{i}. {title}",
-                    value=field_value,
-                    inline=False
+                # Create embed for each article
+                article_embed = discord.Embed(
+                    title=f"📰 {title}",
+                    description=description[:300] + "..." if description and len(description) > 300 else description,
+                    color=0x00ff00,
+                    url=url if url else None
                 )
-            
-            # Add footer
-            embed.set_footer(text="Powered by NewsAPI • Use /technews to get more news")
-            
-            await interaction.followup.send(embed=embed)
+                
+                # Add image if available
+                if image_url:
+                    article_embed.set_image(url=image_url)
+                
+                # Add source and timestamp
+                source = article.get("source", {}).get("name", "Unknown Source")
+                published_at = article.get("publishedAt", "")
+                if published_at:
+                    try:
+                        from datetime import datetime
+                        dt = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
+                        article_embed.set_footer(text=f"Source: {source} • {dt.strftime('%B %d, %Y')}")
+                    except:
+                        article_embed.set_footer(text=f"Source: {source}")
+                else:
+                    article_embed.set_footer(text=f"Source: {source}")
+                
+                await interaction.followup.send(embed=article_embed)
             
         except requests.RequestException as e:
             print(f"Network error: {e}")
@@ -193,7 +233,7 @@ async def main():
     print("📋 Features:")
     print("   • Global slash commands")
     print("   • English and Arabic news")
-    print("   • Beautiful embed messages")
+    print("   • Beautiful embed messages with images")
     print("   • Auto-sync for new servers")
     
     try:
