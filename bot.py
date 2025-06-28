@@ -20,10 +20,6 @@ class TechNews(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def cog_load(self):
-        # Register the command globally (no guild parameter)
-        self.bot.tree.add_command(self.technews)
-
     @app_commands.command(name="technews", description="Get the latest tech news in English or Arabic.")
     @app_commands.describe(language="Choose the language: en (English) or ar (Arabic)")
     async def technews(self, interaction: discord.Interaction, language: str):
