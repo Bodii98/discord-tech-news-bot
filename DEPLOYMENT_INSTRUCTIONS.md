@@ -6,16 +6,31 @@ Your container is still running the old code that uses cogs, which causes the `C
 ## The Solution
 You need to completely rebuild your container with the new code.
 
+## ⚠️ Important: Create .env File First
+
+**Before deploying, you MUST create a `.env` file** in your project directory:
+
+```env
+# Discord Bot Token (get from Discord Developer Portal)
+DISCORD_TOKEN=your_actual_discord_bot_token_here
+
+# News API Key (get from https://newsapi.org/)
+NEWSAPI_KEY=your_actual_news_api_key_here
+```
+
+**Replace the placeholder values with your actual tokens!**
+
 ## Option 1: Using Portainer (Recommended)
 
-1. **Go to Portainer** → **Stacks**
-2. **Stop and remove** your current stack
-3. **Create a new stack** with these settings:
+1. **Create the `.env` file** with your actual tokens (see above)
+2. **Go to Portainer** → **Stacks**
+3. **Stop and remove** your current stack
+4. **Create a new stack** with these settings:
    - **Name**: `discord-bot`
    - **Repository URL**: `https://github.com/Bodii98/discord-tech-news-bot.git`
    - **Repository reference**: `main`
    - **Compose path**: `docker-compose.yml`
-4. **Deploy the stack**
+5. **Deploy the stack**
 
 ## Option 2: Using SSH/Command Line
 
@@ -25,9 +40,15 @@ If you have SSH access to your server:
 # Navigate to your bot directory
 cd /path/to/your/bot
 
+# Create .env file with your tokens
+cat > .env << EOF
+DISCORD_TOKEN=your_actual_discord_bot_token_here
+NEWSAPI_KEY=your_actual_news_api_key_here
+EOF
+
 # Stop and remove everything
 docker-compose down
-docker rmi discord-tech-news-bot:latest
+docker rmi discord-tech-news-bot:latest 2>/dev/null || true
 
 # Pull latest code
 git pull origin main
@@ -41,7 +62,8 @@ docker-compose up -d
 
 ## Option 3: Manual Container Rebuild
 
-1. **In Portainer**:
+1. **Create the `.env` file** with your actual tokens
+2. **In Portainer**:
    - Go to your container
    - Click "Stop"
    - Click "Delete"
@@ -56,6 +78,7 @@ docker-compose up -d
 ✅ **Global server support** - Works in all servers  
 ✅ **Auto-sync** - Commands sync automatically  
 ✅ **Better error handling** - Robust error management  
+✅ **Fixed deployment issues** - No more .env build errors  
 
 ## Expected Logs After Deployment
 
@@ -73,7 +96,15 @@ You should see:
 🚀 Bot is ready and online!
 ```
 
-## If You Still See Errors
+## Troubleshooting
+
+### "Failed to deploy a stack" errors:
+
+1. **Missing .env file**: Create the `.env` file with your actual tokens
+2. **Repository access denied**: Make sure the GitHub repo is public
+3. **Build failed**: Check that all files are present in the repository
+
+### If You Still See Command Registration Errors:
 
 1. **Make sure you're using the latest code** from GitHub
 2. **Check that your `.env` file** has the correct tokens

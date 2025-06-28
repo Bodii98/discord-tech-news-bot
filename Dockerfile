@@ -20,7 +20,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application files
 COPY bot.py .
-COPY .env .
 
 # Create a non-root user for security
 RUN useradd --create-home --shell /bin/bash bot && \
